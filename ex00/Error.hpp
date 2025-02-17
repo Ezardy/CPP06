@@ -1,0 +1,10 @@
+#ifndef EX00_ERROR_HPP
+#define EX00_ERROR_HPP
+
+enum Error {
+	NO_ERROR,
+	UNDERFLOW,
+	OVERFLOW,
+	INV_PAR_COUNT
+};
+#endif
