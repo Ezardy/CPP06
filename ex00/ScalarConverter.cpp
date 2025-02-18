@@ -43,7 +43,7 @@ Error ScalarConverter::convert(char const* str) {
 static void recognize_expression(char const* str, Expression& exp, Value& v, Error& err) {
 	char const* sub;
 
-	if (str == NULL || *str == 0 || std::isspace(*str)
+	if (str == NULL || *str == 0 || (std::isspace(*str) && str[1] != 0)
 		|| ((sub = std::strstr(str, "nan")) && sub[3] != 0 && (sub[3] != 'f' || sub[4]))
 		|| ((sub = std::strstr(str, "NAN")) && sub[3] != 0 && (sub[3] != 'F' || sub[4]))) {
 		exp = EXPR_TYPE_NONE;
@@ -211,10 +211,11 @@ static void impossible_message(void) {
 }
 
 static void char_message(char v) {
-	if (std::isgraph(v))
-		std::cout << v;
-	else
-		std::cout << "Non displayable";
+	if ()
+		if (std::isprint(v))
+			std::cout << '\'' << v << '\'';
+		else
+			std::cout << "Non displayable";
 }
 
 static void float_message(float v) {
