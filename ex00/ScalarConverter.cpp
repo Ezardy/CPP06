@@ -15,7 +15,7 @@ static void print_char(Expression type, Value v, Error err);
 static void print_int(Expression type, Value v, Error err);
 static void print_float(Expression type, Value v, Error err);
 static void print_double(Expression type, Value v, Error err);
-static void char_message(char v);
+static void char_message(int v);
 static void float_message(float v);
 static void double_message(double v);
 static void impossible_message(void);
@@ -65,9 +65,9 @@ static void recognize_expression(char const* str, Expression& exp, Value& v, Err
 				exp = FLOAT;
 				if (errno == ERANGE) {
 					if ((v.f > 0.0f && v.f == HUGE_VALF) || (v.f < 0.0f && v.f == -HUGE_VALF))
-						err = OVERFLOW;
+						err = ERR_OVERFLOW;
 					else
-						err = UNDERFLOW;
+						err = ERR_UNDERFLOW;
 				}
 			} else {
 				v.d = std::strtod(str, &end);
@@ -75,9 +75,9 @@ static void recognize_expression(char const* str, Expression& exp, Value& v, Err
 					exp = DOUBLE;
 					if (errno == ERANGE) {
 						if ((v.d > 0.0 && v.d == HUGE_VAL) || (v.d < 0.0 && v.d == HUGE_VAL))
-							err = OVERFLOW;
+							err = ERR_OVERFLOW;
 						else
-							err = UNDERFLOW;
+							err = ERR_UNDERFLOW;
 					}
 				} else
 					exp = EXPR_TYPE_NONE;
@@ -96,19 +96,19 @@ static void print_char(Expression type, Value v, Error err) {
 				char_message(v.c);
 				break;
 			case INT:
-				char_message(static_cast<char>(v.i));
+				char_message(v.i);
 				break;
 			case FLOAT:
 				if (nonfinitef(v.f))
 					impossible_message();
 				else
-					char_message(static_cast<char>(v.f));
+					char_message(static_cast<int>(v.f));
 				break;
 			case DOUBLE:
 				if (nonfinite(v.d))
 					impossible_message();
 				else
-					char_message(static_cast<char>(v.d));
+					char_message(static_cast<int>(v.d));
 				break;
 			default:
 				impossible_message();
@@ -164,7 +164,7 @@ static void print_float(Expression type, Value v, Error err) {
 				break;
 			case FLOAT:
 				float_message(v.f);
-				if (err == UNDERFLOW)
+				if (err == ERR_UNDERFLOW)
 					underflow_message();
 				break;
 			case DOUBLE:
@@ -195,7 +195,7 @@ static void print_double(Expression type, Value v, Error err) {
 				break;
 			case DOUBLE:
 				double_message(v.d);
-				if (err == UNDERFLOW)
+				if (err == ERR_UNDERFLOW)
 					underflow_message();
 				break;
 			default:
@@ -210,12 +210,13 @@ static void impossible_message(void) {
 	std::cout << "impossible";
 }
 
-static void char_message(char v) {
-	if ()
-		if (std::isprint(v))
-			std::cout << '\'' << v << '\'';
-		else
-			std::cout << "Non displayable";
+static void char_message(int v) {
+	if (std::numeric_limits<char>::min() > v || std::numeric_limits<char>::max() < v)
+		impossible_message();
+	else if (std::isprint(v))
+		std::cout << '\'' << static_cast<char>(v) << '\'';
+	else
+		std::cout << "Non displayable";
 }
 
 static void float_message(float v) {

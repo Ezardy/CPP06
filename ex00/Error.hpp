@@ -3,8 +3,8 @@
 
 enum Error {
 	NO_ERROR,
-	UNDERFLOW,
-	OVERFLOW,
+	ERR_UNDERFLOW,
+	ERR_OVERFLOW,
 	INV_PAR_COUNT
 };
 #endif
