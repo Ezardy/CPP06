@@ -17,14 +17,11 @@ static char const* const inff = "-inff";
 
 static bool char_displayables(void);
 static bool int_normal(void);
-static bool	int_overflow(void);
+static bool int_overflow(void);
 
 int main() {
 	bool   success = true;
-	bool   (*tests[])(void) = {
-		char_displayables,
-		int_normal
-	};
+	bool   (*tests[])(void) = {char_displayables, int_normal, int_overflow};
 	size_t tests_count = sizeof(tests) / sizeof(tests[0]);
 	for (size_t i = 0; success && i < tests_count; i += 1) {
 		success = tests[i]();
@@ -39,7 +36,12 @@ int main() {
 
 TEST_START(int_overflow)
 	TEST_LOGIC_START
-		TEST_ASSERT(ScalarConverter::convert("-2147483649"))
+		TEST_ASSERT(ScalarConverter::convert("-2147483649") == ERR_OVERFLOW)
+		expected += expectation(impossible, impossible, impossible, impossible);
+		TEST_ASSERT(ScalarConverter::convert("2147483648") == ERR_OVERFLOW)
+		expected += expectation(impossible, impossible, impossible, impossible);
+		TEST_ASSERT(ScalarConverter::convert("214748364700040060406") == ERR_OVERFLOW)
+		expected += expectation(impossible, impossible, impossible, impossible);
 	TEST_LOGIC_END
 	TEST_EMERGENCY_START
 	TEST_EMERGENCY_END

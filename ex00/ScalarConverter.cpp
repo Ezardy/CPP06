@@ -49,38 +49,42 @@ static void recognize_expression(char const* str, Expression& exp, Value& v, Err
 		exp = EXPR_TYPE_NONE;
 	} else {
 		char*		 end;
-		long		 l;
 		size_t const len = std::strlen(str);
 
 		if (len == 1 && !std::isdigit(*str)) {
 			exp = CHAR;
 			v.c = *str;
-		} else if ((l = std::strtol(str, &end, 10)) <= std::numeric_limits<int>::max()
-				   && l >= std::numeric_limits<int>::min() && *end == 0) {
-			exp = INT;
-			v.i = static_cast<int>(l);
 		} else {
-			v.f = std::strtof(str, &end);
-			if ((*end == 'f' || *end == 'F') && end[1] == 0) {
-				exp = FLOAT;
-				if (errno == ERANGE) {
-					if ((v.f > 0.0f && v.f == HUGE_VALF) || (v.f < 0.0f && v.f == -HUGE_VALF))
-						err = ERR_OVERFLOW;
-					else
-						err = ERR_UNDERFLOW;
-				}
+			long l = std::strtol(str, &end, 10);
+			if (*end == 0) {
+				exp = INT;
+				if (errno == ERANGE || l < std::numeric_limits<int>::min()
+					|| l > std::numeric_limits<int>::max())
+					err = ERR_OVERFLOW;
+				v.i = static_cast<int>(l);
 			} else {
-				v.d = std::strtod(str, &end);
-				if (*end == 0) {
-					exp = DOUBLE;
+				v.f = std::strtof(str, &end);
+				if ((*end == 'f' || *end == 'F') && end[1] == 0) {
+					exp = FLOAT;
 					if (errno == ERANGE) {
-						if ((v.d > 0.0 && v.d == HUGE_VAL) || (v.d < 0.0 && v.d == HUGE_VAL))
+						if ((v.f > 0.0f && v.f == HUGE_VALF) || (v.f < 0.0f && v.f == -HUGE_VALF))
 							err = ERR_OVERFLOW;
 						else
 							err = ERR_UNDERFLOW;
 					}
-				} else
-					exp = EXPR_TYPE_NONE;
+				} else {
+					v.d = std::strtod(str, &end);
+					if (*end == 0) {
+						exp = DOUBLE;
+						if (errno == ERANGE) {
+							if ((v.d > 0.0 && v.d == HUGE_VAL) || (v.d < 0.0 && v.d == HUGE_VAL))
+								err = ERR_OVERFLOW;
+							else
+								err = ERR_UNDERFLOW;
+						}
+					} else
+						exp = EXPR_TYPE_NONE;
+				}
 			}
 		}
 	}
@@ -88,7 +92,7 @@ static void recognize_expression(char const* str, Expression& exp, Value& v, Err
 
 static void print_char(Expression type, Value v, Error err) {
 	std::cout << "char: ";
-	if (err == OVERFLOW)
+	if (err == ERR_OVERFLOW)
 		impossible_message();
 	else {
 		switch (type) {
@@ -120,7 +124,7 @@ static void print_char(Expression type, Value v, Error err) {
 
 static void print_int(Expression type, Value v, Error err) {
 	std::cout << "int: ";
-	if (err == OVERFLOW)
+	if (err == ERR_OVERFLOW)
 		impossible_message();
 	else {
 		switch (type) {
@@ -152,7 +156,7 @@ static void print_int(Expression type, Value v, Error err) {
 
 static void print_float(Expression type, Value v, Error err) {
 	std::cout << "float: ";
-	if (err == OVERFLOW)
+	if (err == ERR_OVERFLOW)
 		impossible_message();
 	else {
 		switch (type) {
@@ -180,7 +184,7 @@ static void print_float(Expression type, Value v, Error err) {
 
 static void print_double(Expression type, Value v, Error err) {
 	std::cout << "double: ";
-	if (err == OVERFLOW)
+	if (err == ERR_OVERFLOW)
 		impossible_message();
 	else {
 		switch (type) {
