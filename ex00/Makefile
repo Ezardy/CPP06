@@ -21,7 +21,7 @@ clean:
 fclean: clean
 	rm -f convert test
 
-re: fclean convert
+re: fclean all
 
 debug: cflags+=-g
 debug: test convert

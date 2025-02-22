@@ -24,6 +24,18 @@ static bool nonfinite(double d);
 ScalarConverter::ScalarConverter(void) {
 }
 
+ScalarConverter::ScalarConverter(ScalarConverter const& other) {
+	(void)other;
+}
+
+ScalarConverter::~ScalarConverter(void) {
+}
+
+ScalarConverter& ScalarConverter::operator=(ScalarConverter const& other) {
+	(void)other;
+	return *this;
+}
+
 Error ScalarConverter::convert(char const* str) {
 	double	   v;
 	Expression exp;

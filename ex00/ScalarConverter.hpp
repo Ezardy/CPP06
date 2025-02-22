@@ -9,5 +9,9 @@ public:
 
 private:
 	ScalarConverter(void);
+	ScalarConverter(ScalarConverter const& other);
+	~ScalarConverter(void);
+
+	ScalarConverter& operator=(ScalarConverter const& other);
 };
 #endif
