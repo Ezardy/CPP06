@@ -23,9 +23,10 @@
 #define TEST_LOGIC_END                                                                         \
 	std::cout.rdbuf(old);                                                                      \
 	std::cerr.rdbuf(oldCerr);                                                                  \
-	std::cout << "CATCHED STDOUT:\n" << oss.str() << "CATCHED STDERR:\n" << ess.str();         \
-	if (!(success = success && expected == oss.str() && cerrExpected == ess.str()))            \
+	if (!(success = success && expected == oss.str() && cerrExpected == ess.str())) {          \
+		std::cout << "CATCHED STDOUT:\n" << oss.str() << "CATCHED STDERR:\n" << ess.str();     \
 		std::cout << "EXPECTED STDOUT:\n" << expected << "EXPECTED STDERR:\n" << cerrExpected; \
+	}                                                                                          \
 	}
 #define TEST_EMERGENCY_START           \
 	catch (const std::exception& e) {  \
@@ -45,5 +46,33 @@
 #define TEST_ASSERT(cond) \
 	if (!(cond))          \
 		throw std::logic_error(#cond ":" TEST_EXPAND_AND_STRINGIFY(__LINE__));
+
+#define TEST_STDOUT(X)                                                                     \
+	if (X == oss.str())                                                                    \
+		oss.str("");                                                                       \
+	else                                                                                   \
+		throw std::logic_error("CATCHED STDOUT:" TEST_EXPAND_AND_STRINGIFY(__LINE__) ":\n" \
+							   + oss.str() + "EXPECTED STDOUT:\n" + X);
+
+#define TEST_STDERR(X)                                                                     \
+	if (X == ess.str())                                                                    \
+		ess.str("");                                                                       \
+	else                                                                                   \
+		throw std::logic_error("CATCHED STDERR:" TEST_EXPAND_AND_STRINGIFY(__LINE__) ":\n" \
+							   + ess.str() + "EXPECTED STDERR:\n" + X);
+
+#define TEST_EXCEPTION(X, E)                                                                 \
+	bool caught = false;                                                                     \
+	try {                                                                                    \
+		X;                                                                                   \
+	} catch (const E& e) {                                                                   \
+		caught = true;                                                                       \
+	} catch (const std::exception& e) {                                                      \
+		throw std::bad_exception(                                                            \
+			std::string("Wrong exception catched:" TEST_EXPAND_AND_STRINGIFY(__LINE__) ": ") \
+			+ e.what());                                                                     \
+	}                                                                                        \
+	if (!caught)                                                                             \
+		throw std::bad_exception("No exception was catched");
 
 #endif

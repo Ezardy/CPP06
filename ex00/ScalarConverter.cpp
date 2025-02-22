@@ -8,26 +8,24 @@
 #include <limits>
 
 #include "Expression.hpp"
-#include "Value.hpp"
 
-static void recognize_expression(char const* str, Expression& exp, Value& v, Error& err);
-static void print_char(Expression type, Value v, Error err);
-static void print_int(Expression type, Value v, Error err);
-static void print_float(Expression type, Value v, Error err);
-static void print_double(Expression type, Value v, Error err);
-static void char_message(int v);
-static void float_message(float v);
+static void recognize_expression(char const* str, Expression& exp, double& v, Error& err);
+static void print_char(Expression type, double v, Error err);
+static void print_int(Expression type, double v, Error err);
+static void print_float(Expression type, double v, Error err);
+static void print_double(Expression type, double v, Error err);
+static void char_message(double v);
+static void float_message(double v);
 static void double_message(double v);
 static void impossible_message(void);
 static void underflow_message(void);
-static bool nonfinitef(float f);
 static bool nonfinite(double d);
 
 ScalarConverter::ScalarConverter(void) {
 }
 
 Error ScalarConverter::convert(char const* str) {
-	Value	   v;
+	double	   v;
 	Expression exp;
 	Error	   err = NO_ERROR;
 
@@ -40,79 +38,79 @@ Error ScalarConverter::convert(char const* str) {
 	return err;
 }
 
-static void recognize_expression(char const* str, Expression& exp, Value& v, Error& err) {
+static void recognize_expression(char const* str, Expression& exp, double& v, Error& err) {
 	char const* sub;
 
-	if (str == NULL || *str == 0 || (std::isspace(*str) && str[1] != 0)
+	if (str == NULL || *str == 0 || std::isspace(*str)
 		|| ((sub = std::strstr(str, "nan")) && sub[3] != 0 && (sub[3] != 'f' || sub[4]))
-		|| ((sub = std::strstr(str, "NAN")) && sub[3] != 0 && (sub[3] != 'F' || sub[4]))) {
+		|| ((sub = std::strstr(str, "NAN")) && sub[3] != 0 && (sub[3] != 'F' || sub[4]))
+		|| (!std::strpbrk(str, "'nN.eE") && std::strpbrk(str, "fF"))) {
 		exp = EXPR_TYPE_NONE;
+		err = INVALID_EXPRESSION;
 	} else {
-		char*		 end;
-		size_t const len = std::strlen(str);
+		char* end;
 
-		if (len == 1 && !std::isdigit(*str)) {
+		if (std::strlen(str) == 3 && *str == '\'' && str[2] == '\'') {
 			exp = CHAR;
-			v.c = *str;
+			v = str[1];
 		} else {
+			errno = 0;
 			long l = std::strtol(str, &end, 10);
-			if (*end == 0) {
+			if (*end == 0 || ((*end == 'u' || *end == 'U') && end[1] == 0)) {
 				exp = INT;
 				if (errno == ERANGE || l < std::numeric_limits<int>::min()
 					|| l > std::numeric_limits<int>::max())
 					err = ERR_OVERFLOW;
-				v.i = static_cast<int>(l);
+				v = l;
 			} else {
-				v.f = std::strtof(str, &end);
+				errno = 0;
+				float f = std::strtof(str, &end);
+				v = f;
 				if ((*end == 'f' || *end == 'F') && end[1] == 0) {
 					exp = FLOAT;
 					if (errno == ERANGE) {
-						if ((v.f > 0.0f && v.f == HUGE_VALF) || (v.f < 0.0f && v.f == -HUGE_VALF))
+						if ((f > 0.0f && f == HUGE_VALF) || (f < 0.0f && f == -HUGE_VALF))
 							err = ERR_OVERFLOW;
 						else
 							err = ERR_UNDERFLOW;
 					}
 				} else {
-					v.d = std::strtod(str, &end);
+					errno = 0;
+					v = std::strtod(str, &end);
 					if (*end == 0) {
 						exp = DOUBLE;
 						if (errno == ERANGE) {
-							if ((v.d > 0.0 && v.d == HUGE_VAL) || (v.d < 0.0 && v.d == HUGE_VAL))
+							if ((v > 0.0 && v == HUGE_VAL) || (v < 0.0 && v == -HUGE_VAL))
 								err = ERR_OVERFLOW;
 							else
 								err = ERR_UNDERFLOW;
 						}
-					} else
+					} else {
 						exp = EXPR_TYPE_NONE;
+						err = INVALID_EXPRESSION;
+					}
 				}
 			}
 		}
 	}
 }
 
-static void print_char(Expression type, Value v, Error err) {
+static void print_char(Expression type, double v, Error err) {
 	std::cout << "char: ";
 	if (err == ERR_OVERFLOW)
 		impossible_message();
 	else {
 		switch (type) {
 			case CHAR:
-				char_message(v.c);
-				break;
 			case INT:
-				char_message(v.i);
+				char_message(v);
 				break;
 			case FLOAT:
-				if (nonfinitef(v.f))
-					impossible_message();
-				else
-					char_message(static_cast<int>(v.f));
-				break;
 			case DOUBLE:
-				if (nonfinite(v.d))
+				if (nonfinite(v))
 					impossible_message();
 				else
-					char_message(static_cast<int>(v.d));
+					char_message(v);
 				break;
 			default:
 				impossible_message();
@@ -122,29 +120,23 @@ static void print_char(Expression type, Value v, Error err) {
 	std::cout << '\n';
 }
 
-static void print_int(Expression type, Value v, Error err) {
+static void print_int(Expression type, double v, Error err) {
 	std::cout << "int: ";
 	if (err == ERR_OVERFLOW)
 		impossible_message();
 	else {
 		switch (type) {
 			case CHAR:
-				std::cout << static_cast<int>(v.c);
-				break;
 			case INT:
-				std::cout << v.i;
+				std::cout << static_cast<int>(v);
 				break;
 			case FLOAT:
-				if (nonfinitef(v.f))
-					impossible_message();
-				else
-					std::cout << static_cast<int>(v.f);
-				break;
 			case DOUBLE:
-				if (nonfinite(v.d))
+				if (nonfinite(v) || v < std::numeric_limits<int>::min()
+					|| v > std::numeric_limits<int>::max())
 					impossible_message();
 				else
-					std::cout << static_cast<int>(v.d);
+					std::cout << static_cast<int>(v);
 				break;
 			default:
 				impossible_message();
@@ -154,25 +146,21 @@ static void print_int(Expression type, Value v, Error err) {
 	std::cout << '\n';
 }
 
-static void print_float(Expression type, Value v, Error err) {
+static void print_float(Expression type, double v, Error err) {
 	std::cout << "float: ";
 	if (err == ERR_OVERFLOW)
 		impossible_message();
 	else {
 		switch (type) {
 			case CHAR:
-				float_message(v.c);
-				break;
 			case INT:
-				float_message(v.i);
+			case DOUBLE:
+				float_message(v);
 				break;
 			case FLOAT:
-				float_message(v.f);
+				float_message(v);
 				if (err == ERR_UNDERFLOW)
 					underflow_message();
-				break;
-			case DOUBLE:
-				float_message(static_cast<float>(v.d));
 				break;
 			default:
 				impossible_message();
@@ -182,23 +170,19 @@ static void print_float(Expression type, Value v, Error err) {
 	std::cout << '\n';
 }
 
-static void print_double(Expression type, Value v, Error err) {
+static void print_double(Expression type, double v, Error err) {
 	std::cout << "double: ";
 	if (err == ERR_OVERFLOW)
 		impossible_message();
 	else {
 		switch (type) {
 			case CHAR:
-				double_message(v.c);
-				break;
 			case INT:
-				double_message(v.i);
-				break;
 			case FLOAT:
-				double_message(v.f);
+				double_message(v);
 				break;
 			case DOUBLE:
-				double_message(v.d);
+				double_message(v);
 				if (err == ERR_UNDERFLOW)
 					underflow_message();
 				break;
@@ -214,7 +198,7 @@ static void impossible_message(void) {
 	std::cout << "impossible";
 }
 
-static void char_message(int v) {
+static void char_message(double v) {
 	if (std::numeric_limits<char>::min() > v || std::numeric_limits<char>::max() < v)
 		impossible_message();
 	else if (std::isprint(v))
@@ -223,8 +207,12 @@ static void char_message(int v) {
 		std::cout << "Non displayable";
 }
 
-static void float_message(float v) {
-	std::cout << std::fixed << v << 'f';
+static void float_message(double v) {
+	if (!nonfinite(v)
+		&& (v < -std::numeric_limits<float>::max() || v > std::numeric_limits<float>::max()))
+		impossible_message();
+	else
+		std::cout << std::fixed << static_cast<float>(v) << 'f';
 }
 
 static void double_message(double v) {
@@ -233,11 +221,6 @@ static void double_message(double v) {
 
 static void underflow_message(void) {
 	std::cout << " (underflow)";
-}
-
-static bool nonfinitef(float f) {
-	return f == std::numeric_limits<float>::infinity()
-		   || f == -std::numeric_limits<float>::infinity() || f != f;
 }
 
 static bool nonfinite(double d) {
