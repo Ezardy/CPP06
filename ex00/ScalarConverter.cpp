@@ -42,9 +42,11 @@ static void recognize_expression(char const* str, Expression& exp, double& v, Er
 	char const* sub;
 
 	if (str == NULL || *str == 0 || std::isspace(*str)
-		|| ((sub = std::strstr(str, "nan")) && sub[3] != 0 && (sub[3] != 'f' || sub[4]))
-		|| ((sub = std::strstr(str, "NAN")) && sub[3] != 0 && (sub[3] != 'F' || sub[4]))
-		|| (!std::strpbrk(str, "'nN.eE") && std::strpbrk(str, "fF"))) {
+		|| ((sub = strcasestr(str, "nan"))
+			&& (!std::strstr(sub, "nan") || (sub[3] && (sub[3] != 'f' || sub[4]))))
+		|| ((sub = strcasestr(str, "inf"))
+			&& (!std::strstr(sub, "inf") || (sub[3] && (sub[3] != 'f' || sub[4]))))
+		|| (!std::strpbrk(str, "'n.eE") && std::strpbrk(str, "fF"))) {
 		exp = EXPR_TYPE_NONE;
 		err = INVALID_EXPRESSION;
 	} else {

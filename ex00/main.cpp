@@ -2,7 +2,7 @@
 
 #include "ScalarConverter.hpp"
 
-int main(int argc, char* const* const argv) {
+int main(int argc, char const* const* const argv) {
 	Error error;
 
 	if (argc == 2)
