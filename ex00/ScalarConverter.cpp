@@ -21,22 +21,22 @@ static void impossible_message(void);
 static void underflow_message(void);
 static bool nonfinite(double d);
 
-ScalarConverter::ScalarConverter(void) {
+ScalarConverter::ScalarConverter(void) throw() {
 }
 
-ScalarConverter::ScalarConverter(ScalarConverter const& other) {
+ScalarConverter::ScalarConverter(ScalarConverter const& other) throw() {
 	(void)other;
 }
 
-ScalarConverter::~ScalarConverter(void) {
+ScalarConverter::~ScalarConverter(void) throw() {
 }
 
-ScalarConverter& ScalarConverter::operator=(ScalarConverter const& other) {
+ScalarConverter& ScalarConverter::operator=(ScalarConverter const& other) throw() {
 	(void)other;
 	return *this;
 }
 
-Error ScalarConverter::convert(char const* str) {
+Error ScalarConverter::convert(char const* str) throw() {
 	double	   v;
 	Expression exp;
 	Error	   err = NO_ERROR;

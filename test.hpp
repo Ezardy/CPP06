@@ -75,4 +75,10 @@
 	if (!caught)                                                                             \
 		throw std::bad_exception("No exception was catched");
 
+#define CURRENT_STDOUT oss.str()
+
+#define CURRENT_STDERR ess.str()
+
+#define CLEAN_STDOUT oss.str("");
+
 #endif

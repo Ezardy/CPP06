@@ -7,6 +7,11 @@
 			"label": "ex00 build",
 			"type": "shell",
 			"command": "make -C ex00 debug"
+		},
+		{
+			"label": "ex02 build",
+			"type": "shell",
+			"command": "make -C ex02 debug"
 		}
 	]
 }

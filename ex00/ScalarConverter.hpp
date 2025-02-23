@@ -5,13 +5,13 @@
 
 class ScalarConverter {
 public:
-	static Error convert(char const* str);
+	static Error convert(char const* str) throw();
 
 private:
-	ScalarConverter(void);
-	ScalarConverter(ScalarConverter const& other);
-	~ScalarConverter(void);
+	ScalarConverter(void) throw();
+	ScalarConverter(ScalarConverter const& other) throw();
+	~ScalarConverter(void) throw();
 
-	ScalarConverter& operator=(ScalarConverter const& other);
+	ScalarConverter& operator=(ScalarConverter const& other) throw();
 };
 #endif

@@ -12,6 +12,15 @@
 			"args": [],
 			"cwd": "${workspaceFolder}",
 			"preLaunchTask": "ex00 build"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"name": "ex02",
+			"program": "${workspaceFolder}/ex02/test",
+			"args": [],
+			"cwd": "${workspaceFolder}",
+			"preLaunchTask": "ex02 build"
 		}
 	]
 }
