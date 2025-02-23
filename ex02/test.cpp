@@ -30,7 +30,7 @@ int main() {
 // clang-format off
 TEST_START(generate_test)
 	TEST_LOGIC_START
-		int const	test_count = 100;
+		int const	test_count = 1000;
 		float const	tolerance = 5.0f;
 
 		int	a_count = 0;
@@ -55,9 +55,9 @@ TEST_START(generate_test)
 		}
 
 		TEST_ASSERT(other_count == 0)
-		TEST_ASSERT(std::abs((float)a_count / test_count * 100 - 30) <= tolerance)
-		TEST_ASSERT(std::abs((float)b_count / test_count * 100 - 30) <= tolerance)
-		TEST_ASSERT(std::abs((float)c_count / test_count * 100 - 30) <= tolerance)
+		TEST_ASSERT(std::abs((float)a_count / test_count * 100 - 30) < tolerance)
+		TEST_ASSERT(std::abs((float)b_count / test_count * 100 - 30) < tolerance)
+		TEST_ASSERT(std::abs((float)c_count / test_count * 100 - 30) < tolerance)
 	TEST_LOGIC_END
 	TEST_EMERGENCY_START
 	TEST_EMERGENCY_END
